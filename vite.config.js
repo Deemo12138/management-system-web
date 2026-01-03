@@ -9,7 +9,7 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src')
     },
-    modules: [resolve('F:\\ai\\trae\\dependencies\\node_modules')],
+    modules: ['node_modules'],
     preserveSymlinks: true
   },
   server: {
