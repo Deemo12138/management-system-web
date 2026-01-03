@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "install:deps": "npm install --prefix \"F:\\ai\\trae\\dependencies\"",
+    "dev": "npm run install:deps && set \"NODE_PATH=F:\\ai\\trae\\dependencies\\node_modules\" && \"F:\\ai\\trae\\dependencies\\node_modules\\.bin\\vite\" --config vite.config.js",
+    "build": "npm run install:deps && set \"NODE_PATH=F:\\ai\\trae\\dependencies\\node_modules\" && \"F:\\ai\\trae\\dependencies\\node_modules\\.bin\\vite\" build --config vite.config.js",
+    "preview": "set \"NODE_PATH=F:\\ai\\trae\\dependencies\\node_modules\" && \"F:\\ai\\trae\\dependencies\\node_modules\\.bin\\vite\" preview --config vite.config.js"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
