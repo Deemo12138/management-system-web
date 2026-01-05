@@ -17,3 +17,4 @@ export const getCaptcha = () => {
     responseType: 'blob', // 如果返回的是图片二进制数据
   });
 };
+

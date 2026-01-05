@@ -26,9 +26,10 @@ export const sha256Encrypt = (text) => {
 };
 
 // 密码加密方法（封装完整的加密逻辑）
-export const encryptPassword = (password, randomSalt) => {
+export const encryptPassword = (password, randomSalt = '') => {
   const fixedSalt = getFrontFixedSalt();
-  const passwordToEncrypt = password + randomSalt + fixedSalt;
+  // 按照要求的顺序：明文密码 + 前端固定盐
+  const passwordToEncrypt = password + fixedSalt;
   return sha256Encrypt(passwordToEncrypt);
 };
 

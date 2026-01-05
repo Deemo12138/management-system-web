@@ -33,27 +33,6 @@
         </div>
         
         <div class="form-group">
-          <label for="captcha" class="form-label">验证码</label>
-          <div class="captcha-group">
-            <input
-              type="text"
-              id="captcha"
-              v-model="loginForm.captcha"
-              class="form-input captcha-input"
-              placeholder="请输入验证码"
-              required
-              maxlength="4"
-              minlength="4"
-            />
-            <Captcha
-              ref="captchaRef"
-              @update:code="handleCaptchaUpdate"
-              class="captcha-component"
-            />
-          </div>
-        </div>
-        
-        <div class="form-group">
           <label class="checkbox-label">
             <input type="checkbox" v-model="loginForm.remember" class="checkbox-input" />
             <span class="checkbox-text">记住我</span>
@@ -80,53 +59,50 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import Captcha from './Captcha.vue'
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { login } from '@/api/login'
-import { encryptPassword, generateRandomSalt } from '@/utils/crypto'
+import { encryptPassword } from '@/utils/crypto'
 
-const captchaRef = ref(null)
+const router = useRouter()
+
 const loading = ref(false)
 const error = ref('')
+const challenge = ref('')
 
 const loginForm = reactive({
   username: '',
   password: '',
-  captcha: '',
   remember: false
 })
-
-const handleCaptchaUpdate = (code) => {
-  console.log('验证码更新:', code)
-}
 
 const handleLogin = async () => {
   // 重置错误信息
   error.value = ''
   
-  // 验证验证码
-  if (!captchaRef.value?.validate(loginForm.captcha)) {
-    error.value = '验证码错误，请重新输入'
-    captchaRef.value?.refreshCaptcha()
-    loginForm.captcha = ''
-    return
-  }
-  
   loading.value = true
   
   try {
-    // 步骤1: 生成随机盐（每次登录生成新的）
-    const random_salt = generateRandomSalt()
+    // 检查用户名是否为空
+    if (!loginForm.username.trim()) {
+      error.value = '请输入用户名'
+      return
+    }
     
-    // 步骤2-4: 使用与注册相同的加密方法
-    const front_pwd_hash = encryptPassword(loginForm.password, random_salt)
+    // 检查密码是否为空
+    if (!loginForm.password.trim()) {
+      error.value = '请输入密码'
+      return
+    }
     
-    // 调用登录接口
+
+    // 2. 使用密码+前端固定盐进行加密（不再使用挑战码）
+    const front_pwd_hash = encryptPassword(loginForm.password, '')
+    
+    // 3. 调用登录接口，将挑战码作为独立参数传入
     const response = await login({
       username: loginForm.username,
-      front_pwd_hash: front_pwd_hash,
-      random_salt: random_salt,
-      captcha: loginForm.captcha
+      front_pwd_hash: front_pwd_hash
     })
     
     // 登录成功后的处理
@@ -144,13 +120,11 @@ const handleLogin = async () => {
       localStorage.removeItem('username')
     }
     
-    // 这里可以添加路由跳转逻辑
-    console.log('跳转到首页')
+    // 跳转到首页
+    router.push('/home')
     
   } catch (err) {
     error.value = err.message || '登录失败，请稍后重试'
-    captchaRef.value?.refreshCaptcha()
-    loginForm.captcha = ''
   } finally {
     loading.value = false
   }
@@ -234,20 +208,7 @@ const handleLogin = async () => {
   color: #9ca3af;
 }
 
-.captcha-group {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
 
-.captcha-input {
-  flex: 1;
-  min-width: 0;
-}
-
-.captcha-component {
-  flex-shrink: 0;
-}
 
 .checkbox-label {
   display: flex;
@@ -349,25 +310,12 @@ const handleLogin = async () => {
 
 /* 响应式设计 */
 @media (max-width: 640px) {
-  .login-card {
-    padding: 32px 24px;
+    .login-card {
+      padding: 32px 24px;
+    }
+    
+    .login-title {
+      font-size: 24px;
+    }
   }
-  
-  .login-title {
-    font-size: 24px;
-  }
-  
-  .captcha-group {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .captcha-input {
-    width: 100%;
-  }
-  
-  .captcha-component {
-    align-self: flex-start;
-  }
-}
 </style>

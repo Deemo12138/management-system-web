@@ -129,19 +129,15 @@ const handleRegister = async () => {
   loading.value = true
   
   try {
-    // 生成临时随机盐
-    const front_random_salt = generateRandomSalt()
-    
-    // 使用封装好的密码加密方法
-    const front_pwd_hash = encryptPassword(registerForm.password, front_random_salt)
+    // 直接使用密码进行加密，不生成随机盐
+    const front_pwd_hash = encryptPassword(registerForm.password, '')
     
     // 发送注册请求
     const response = await registerUser({
       username: registerForm.username,
       real_name: registerForm.real_name,
       phone: registerForm.phone,
-      front_pwd_hash: front_pwd_hash,
-      front_random_salt: front_random_salt
+      front_pwd_hash: front_pwd_hash
     })
     
     // 注册成功后的处理
