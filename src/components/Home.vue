@@ -6,7 +6,7 @@
       </div>
       <div class="header-right">
         <div class="user-info">
-          <span class="welcome-text">欢迎，{{ username }}</span>
+          <span class="welcome-text">欢迎，{{ realName || username }} ({{ role }})</span>
           <button class="logout-btn" @click="handleLogout">退出登录</button>
         </div>
       </div>
@@ -75,29 +75,51 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { checkToken } from '@/api/login'
 
 const router = useRouter()
 const username = ref('')
+const realName = ref('')
+const role = ref('')
 
-// 组件挂载时获取用户名
-onMounted(() => {
-  // 从本地存储获取用户名（实际项目中应该从用户信息接口获取）
+// 组件挂载时验证token
+onMounted(async () => {
+  const token = localStorage.getItem('token')
   const storedUsername = localStorage.getItem('username')
-  if (storedUsername) {
-    username.value = storedUsername
-  } else {
-    // 如果没有用户名信息，跳转到登录页
+  
+  if (!token || !storedUsername) {
+    clearUserData()
+    router.push('/login')
+    return
+  }
+
+  try {
+    const response = await checkToken(token)
+    if (response.code === 200 || response.success) {
+      username.value = storedUsername
+      realName.value = localStorage.getItem('realName') || ''
+      role.value = localStorage.getItem('role') || ''
+    } else {
+      clearUserData()
+      router.push('/login')
+    }
+  } catch (err) {
+    clearUserData()
     router.push('/login')
   }
 })
 
-// 退出登录
-const handleLogout = () => {
-  // 清除本地存储的token和用户名
+const clearUserData = () => {
   localStorage.removeItem('token')
   localStorage.removeItem('username')
-  
-  // 跳转到登录页
+  localStorage.removeItem('userId')
+  localStorage.removeItem('realName')
+  localStorage.removeItem('role')
+}
+
+// 退出登录
+const handleLogout = () => {
+  clearUserData()
   router.push('/login')
 }
 </script>

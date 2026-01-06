@@ -108,16 +108,20 @@ const handleLogin = async () => {
     // 登录成功后的处理
     console.log('登录成功:', response)
     
-    // 保存 token 到本地存储
-    if (response.data?.token) {
-      localStorage.setItem('token', response.data.token)
+    // 保存用户信息到本地存储
+    if (response.data) {
+      localStorage.setItem('token', response.data.token || '')
+      localStorage.setItem('username', response.data.username || loginForm.username)
+      localStorage.setItem('userId', response.data.user_id || '')
+      localStorage.setItem('realName', response.data.real_name || '')
+      localStorage.setItem('role', response.data.role || '')
     }
     
     // 记住密码（可选）
     if (loginForm.remember) {
-      localStorage.setItem('username', loginForm.username)
+      localStorage.setItem('password', loginForm.password)
     } else {
-      localStorage.removeItem('username')
+      localStorage.removeItem('password')
     }
     
     // 跳转到首页

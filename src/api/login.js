@@ -9,12 +9,12 @@ export const login = (data) => {
   });
 };
 
-// 获取验证码图片接口（可选，根据实际情况使用）
-export const getCaptcha = () => {
+// 验证token是否有效接口
+export const checkToken = (token) => {
   return request({
-    url: '/captcha',
+    url: '/auth/checkToken',
     method: 'get',
-    responseType: 'blob', // 如果返回的是图片二进制数据
+    params: { token }
   });
 };
 
