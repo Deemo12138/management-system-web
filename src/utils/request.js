@@ -13,7 +13,7 @@ service.interceptors.request.use(
     // 在发送请求之前做些什么
     // 可以添加 token 等认证信息
     const token = localStorage.getItem('token');
-    if (token) {
+    if (token && !config.url.includes('/auth/login')) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
     
