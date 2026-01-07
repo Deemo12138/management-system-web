@@ -17,11 +17,8 @@ service.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${token}`;
     }
     
-    // 添加跨域请求头
+    // 设置请求头
     config.headers['Content-Type'] = 'application/json;charset=utf-8';
-    config.headers['Access-Control-Allow-Origin'] = '*';
-    config.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
-    config.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
     
     return config;
   },
