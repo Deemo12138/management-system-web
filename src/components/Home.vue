@@ -14,6 +14,20 @@
     
     <div class="home-main">
       <div class="content-section">
+        <h2 class="section-title">快捷入口</h2>
+        <div class="quick-links">
+          <div class="quick-link-card poker-game" @click="goToPoker">
+            <div class="link-icon">🃏</div>
+            <div class="link-content">
+              <div class="link-title">德州扑克</div>
+              <div class="link-desc">与AI玩家一决高下</div>
+            </div>
+            <div class="link-arrow">→</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-section">
         <h2 class="section-title">系统概览</h2>
         <div class="stats-grid">
           <div class="stat-card">
@@ -122,6 +136,11 @@ const handleLogout = () => {
   clearUserData()
   router.push('/login')
 }
+
+// 进入德州扑克游戏
+const goToPoker = () => {
+  router.push('/poker')
+}
 </script>
 
 <style scoped>
@@ -199,6 +218,62 @@ const handleLogout = () => {
   font-weight: bold;
   color: #303133;
   margin: 0 0 20px 0;
+}
+
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.quick-link-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+  color: white;
+}
+
+.quick-link-card.poker-game {
+  background: linear-gradient(135deg, #1a5f3c 0%, #2d7a4a 100%);
+}
+
+.quick-link-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.link-icon {
+  font-size: 40px;
+}
+
+.link-content {
+  flex: 1;
+}
+
+.link-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.link-desc {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.link-arrow {
+  font-size: 24px;
+  opacity: 0.8;
+  transition: transform 0.3s;
+}
+
+.quick-link-card:hover .link-arrow {
+  transform: translateX(5px);
 }
 
 .stats-grid {
