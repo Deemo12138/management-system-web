@@ -105,6 +105,26 @@
           </template>
         </el-alert>
       </div>
+
+      <!-- 游戏日志 -->
+      <div class="game-logs" v-if="gameId">
+        <div class="logs-header">
+          <span>游戏日志</span>
+          <el-button type="text" size="small" @click="clearLogs">清空</el-button>
+        </div>
+        <div class="logs-content" ref="logsContainer">
+          <div
+            v-for="(log, index) in displayLogs"
+            :key="index"
+            :class="['log-item', `log-${log.logType}`]"
+          >
+            <span class="log-time">{{ formatLogTime(log.timestamp) }}</span>
+            <span class="log-phase">{{ log.phase }}</span>
+            <span class="log-message">{{ log.message }}</span>
+          </div>
+          <div v-if="displayLogs.length === 0" class="log-empty">暂无日志</div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -131,6 +151,10 @@ const gameId = ref(null);
 const gameState = ref(null);
 const loading = ref(false);
 const aiThinking = ref(false);
+
+// 日志相关
+const logs = ref([]);
+const logsContainer = ref(null);
 
 // 轮询定时器
 let statusTimer = null;
@@ -159,6 +183,52 @@ const isHumanTurn = computed(() => {
          gameState.value?.currentPhase !== 'finished' &&
          gameState.value?.currentPhase !== 'waiting';
 });
+
+// 显示的日志列表（倒序排列，最新的在上面）
+const displayLogs = computed(() => {
+  // 优先显示后端返回的日志
+  if (gameState.value?.gameLogs && gameState.value.gameLogs.length > 0) {
+    return [...gameState.value.gameLogs].reverse();
+  }
+  // 否则显示本地日志
+  return [...logs.value].reverse();
+});
+
+// 更新日志（从后端状态同步）
+const updateLogs = () => {
+  if (gameState.value?.gameLogs) {
+    const newLogs = gameState.value.gameLogs;
+    // 只添加新的日志
+    if (newLogs.length > logs.value.length) {
+      logs.value = newLogs;
+      scrollToBottom();
+    }
+  }
+};
+
+// 滚动到日志底部
+const scrollToBottom = () => {
+  setTimeout(() => {
+    if (logsContainer.value) {
+      logsContainer.value.scrollTop = logsContainer.value.scrollHeight;
+    }
+  }, 50);
+};
+
+// 清空日志
+const clearLogs = () => {
+  logs.value = [];
+};
+
+// 格式化日志时间
+const formatLogTime = (timestamp) => {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+};
 
 // 创建游戏
 const createGame = async () => {
@@ -209,6 +279,9 @@ const refreshGameState = async () => {
   try {
     const res = await pokerApi.getGameStatus(gameId.value);
     gameState.value = res.data;
+
+    // 更新日志
+    updateLogs();
 
     // 如果轮到AI，自动执行AI操作
     if (res.data.currentPlayerPosition !== 0 &&
@@ -532,5 +605,97 @@ const formatNumber = (num) => {
   transform: translate(-50%, -50%);
   z-index: 999;
   min-width: 300px;
+}
+
+/* 游戏日志 */
+.game-logs {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 180px;
+  background: rgba(0, 0, 0, 0.9);
+  border-top: 2px solid #8b4513;
+  display: flex;
+  flex-direction: column;
+  z-index: 90;
+}
+
+.logs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: rgba(139, 69, 19, 0.8);
+  color: white;
+  font-size: 14px;
+}
+
+.logs-header span {
+  font-weight: bold;
+}
+
+.logs-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 13px;
+}
+
+.logs-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.logs-content::-webkit-scrollbar-thumb {
+  background: #8b4513;
+  border-radius: 3px;
+}
+
+.log-item {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0;
+  line-height: 1.4;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.log-time {
+  color: #888;
+  min-width: 60px;
+}
+
+.log-phase {
+  color: #f39c12;
+  min-width: 50px;
+  font-weight: bold;
+}
+
+.log-message {
+  color: #ecf0f1;
+  flex: 1;
+}
+
+.log-item.log-system .log-message {
+  color: #3498db;
+}
+
+.log-item.log-action .log-message {
+  color: #2ecc71;
+}
+
+.log-item.log-phase .log-message {
+  color: #e74c3c;
+}
+
+.log-empty {
+  text-align: center;
+  color: #666;
+  padding: 40px 0;
+}
+
+/* 当有日志时，调整操作面板位置 */
+.action-panel {
+  bottom: 190px;
 }
 </style>
