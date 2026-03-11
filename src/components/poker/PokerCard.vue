@@ -1,5 +1,5 @@
 <template>
-  <div :class="['poker-card', suitClass]" v-if="card">
+  <div :class="['poker-card', suitClass, { 'dealing': isDealing, 'dealt': isDealt }]" v-if="card">
     <div class="card-top">
       <span class="rank">{{ rank }}</span>
       <span class="suit">{{ suit }}</span>
@@ -18,13 +18,34 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps({
   card: {
     type: String,
     default: null,
   },
+});
+
+// 发牌动画状态
+const isDealing = ref(false);
+const isDealt = ref(false);
+
+// 监听 card 变化，触发发牌动画
+watch(() => props.card, (newCard, oldCard) => {
+  if (newCard && newCard !== oldCard) {
+    // 新牌发出来，触发动画
+    isDealing.value = true;
+    isDealt.value = false;
+    setTimeout(() => {
+      isDealing.value = false;
+      isDealt.value = true;
+    }, 50);
+  } else if (!newCard) {
+    // 牌被清空（新一局）
+    isDealing.value = false;
+    isDealt.value = false;
+  }
 });
 
 const rank = computed(() => {
@@ -60,12 +81,47 @@ const suitClass = computed(() => {
   padding: 4px;
   position: relative;
   font-family: 'Georgia', serif;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.3s, box-shadow 0.3s, opacity 0.3s;
 }
 
 .poker-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* 发牌动画 */
+.poker-card.dealing {
+  animation: dealCard 0.4s ease-out;
+}
+
+@keyframes dealCard {
+  0% {
+    opacity: 0;
+    transform: translateX(-100px) translateY(-50px) rotate(-20deg) scale(0.8);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0) translateY(0) rotate(0deg) scale(1);
+  }
+}
+
+/* 发牌完成后的效果 */
+.poker-card.dealt {
+  animation: cardDealBounce 0.3s ease-out;
+}
+
+@keyframes cardDealBounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .poker-card.red {

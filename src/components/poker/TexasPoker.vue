@@ -43,11 +43,17 @@
           <div class="cards">
             <poker-card
               v-for="(card, index) in gameState?.communityCards || []"
-              :key="index"
+              :key="`community-${gameState?.currentRound}-${index}-${card}`"
               :card="card"
             />
             <span v-if="!gameState?.communityCards?.length" class="placeholder">等待发牌...</span>
           </div>
+        </div>
+
+        <!-- 阶段变化提示 -->
+        <div class="phase-change-notify" v-if="phaseChangeNotify">
+          <el-icon class="is-loading"><Loading /></el-icon>
+          <span>{{ phaseChangeNotify }}</span>
         </div>
 
         <!-- 玩家座位 -->
@@ -155,6 +161,10 @@ const aiThinking = ref(false);
 // 日志相关
 const logs = ref([]);
 const logsContainer = ref(null);
+
+// 阶段变化通知
+const phaseChangeNotify = ref(null);
+let currentPhase = ref(null);
 
 // 轮询定时器
 let statusTimer = null;
@@ -278,7 +288,36 @@ const refreshGameState = async () => {
   if (!gameId.value) return;
   try {
     const res = await pokerApi.getGameStatus(gameId.value);
+    const newPhase = res.data.currentPhase;
+    const oldPhase = currentPhase.value;
+
     gameState.value = res.data;
+
+    // 检测阶段变化，显示通知
+    if (oldPhase && oldPhase !== newPhase && oldPhase !== 'waiting') {
+      const phaseNames = {
+        'preflop': '翻牌前',
+        'flop': '翻牌',
+        'turn': '转牌',
+        'river': '河牌',
+        'showdown': '摊牌',
+        'finished': '游戏结束'
+      };
+      phaseChangeNotify.value = `进入${phaseNames[newPhase] || newPhase}阶段`;
+
+      // 翻牌阶段有额外延迟
+      if (newPhase === 'flop' || newPhase === 'turn' || newPhase === 'river') {
+        setTimeout(() => {
+          phaseChangeNotify.value = null;
+        }, 2000);
+      } else {
+        setTimeout(() => {
+          phaseChangeNotify.value = null;
+        }, 1000);
+      }
+    }
+
+    currentPhase.value = newPhase;
 
     // 更新日志
     updateLogs();
@@ -298,13 +337,22 @@ const refreshGameState = async () => {
 const executeAiActions = async () => {
   aiThinking.value = true;
   try {
+    // AI思考延迟（让游戏节奏更自然）
+    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 1000));
+
     const res = await pokerApi.performAiActions(gameId.value);
     gameState.value = res.data;
 
+    // 更新日志
+    updateLogs();
+
     // 检查是否需要进入下一阶段
     if (res.data.currentPhase !== 'finished' && res.data.currentPhase !== 'waiting') {
+      // 检查阶段变化，如果是新阶段添加延迟
+      const prevPhase = gameState.value?.currentPhase;
+      await new Promise(resolve => setTimeout(resolve, 200));
+
       // 继续检查是否还有AI需要行动
-      await new Promise(resolve => setTimeout(resolve, 500));
       if (gameState.value.currentPlayerPosition !== 0) {
         await executeAiActions();
       }
@@ -434,7 +482,8 @@ const formatWinnerInfo = (info) => {
 const startPolling = () => {
   stopPolling();
   refreshGameState();
-  statusTimer = setInterval(refreshGameState, 2000);
+  // 降低轮询频率，让游戏节奏更慢
+  statusTimer = setInterval(refreshGameState, 3000);
 };
 
 // 停止轮询
@@ -596,6 +645,45 @@ const formatNumber = (num) => {
   align-items: center;
   gap: 10px;
   z-index: 1000;
+}
+
+/* 阶段变化通知 */
+.phase-change-notify {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #f1c40f;
+  padding: 15px 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 999;
+  font-size: 18px;
+  font-weight: bold;
+  animation: fadeInOut 2s ease-in-out;
+  border: 2px solid #f1c40f;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  20% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  80% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
 }
 
 .winner-info {

@@ -25,7 +25,7 @@
     <div class="player-cards">
       <poker-card
         v-for="(card, index) in displayCards"
-        :key="index"
+        :key="`hole-${player.position}-${index}-${card}`"
         :card="card"
       />
       <div v-if="!displayCards?.length" class="no-cards">
