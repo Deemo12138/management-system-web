@@ -346,16 +346,23 @@ const executeAiActions = async () => {
     // 更新日志
     updateLogs();
 
-    // 检查是否需要进入下一阶段
-    if (res.data.currentPhase !== 'finished' && res.data.currentPhase !== 'waiting') {
-      // 检查阶段变化，如果是新阶段添加延迟
-      const prevPhase = gameState.value?.currentPhase;
-      await new Promise(resolve => setTimeout(resolve, 200));
+    // 检查游戏是否已结束或等待中，如果是则停止AI操作
+    if (res.data.currentPhase === 'finished' || res.data.currentPhase === 'waiting') {
+      console.log('游戏已结束或等待中，停止AI操作');
+      return;
+    }
 
-      // 继续检查是否还有AI需要行动
-      if (gameState.value.currentPlayerPosition !== 0) {
-        await executeAiActions();
-      }
+    // 检查阶段变化，如果是新阶段添加延迟
+    const prevPhase = gameState.value?.currentPhase;
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // 继续检查是否还有AI需要行动
+    // 检查当前玩家是否是AI（通过玩家列表判断）
+    const currentPlayer = gameState.value?.playerStates?.[gameState.value.currentPlayerPosition];
+    const isCurrentPlayerAi = currentPlayer?.isAi;
+
+    if (isCurrentPlayerAi && gameState.value.currentPhase !== 'finished') {
+      await executeAiActions();
     }
   } catch (error) {
     console.error('AI操作失败', error);
