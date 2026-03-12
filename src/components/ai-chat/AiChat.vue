@@ -163,11 +163,34 @@ const streamChat = async (message, messageIndex) => {
     let fullContent = ''
 
     eventSource.onmessage = (event) => {
-      const data = event.data
-      if (data && data.trim()) {
-        fullContent += data
-        messages.value[messageIndex].content = fullContent
-        nextTick(() => scrollToBottom())
+      try {
+        const data = event.data
+
+        // 检查是否是结束标记
+        if (data === '[DONE]') {
+          eventSource.close()
+          isAiThinking.value = false
+          resolve()
+          return
+        }
+
+        // 解析 OpenAI SSE 格式
+        if (data && data.startsWith('data: ')) {
+          const jsonStr = data.substring(6).trim() // 移除 "data: " 前缀
+          const jsonData = JSON.parse(jsonStr)
+
+          // 提取 content
+          if (jsonData.choices && jsonData.choices[0] && jsonData.choices[0].delta) {
+            const delta = jsonData.choices[0].delta
+            if (delta.content) {
+              fullContent += delta.content
+              messages.value[messageIndex].content = fullContent
+              nextTick(() => scrollToBottom())
+            }
+          }
+        }
+      } catch (e) {
+        console.error('解析 SSE 数据失败:', e, event.data)
       }
     }
 
