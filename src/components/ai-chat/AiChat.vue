@@ -21,6 +21,20 @@
           <el-icon v-else :size="24" color="#409EFF"><ChatDotRound /></el-icon>
         </div>
         <div class="message-content">
+          <!-- 推理内容（可折叠） -->
+          <div v-if="message.thinking" class="thinking-section">
+            <div class="thinking-header" @click="toggleThinking(index)">
+              <el-icon :size="16"><View /></el-icon>
+              <span>思考过程</span>
+              <el-icon :size="14" :class="{ 'rotated': message.showThinking }">
+                <ArrowRight />
+              </el-icon>
+            </div>
+            <div v-show="message.showThinking" class="thinking-content">
+              {{ message.thinking }}
+            </div>
+          </div>
+          <!-- 实际回复内容 -->
           <div class="message-text" v-html="renderMarkdown(message.content)"></div>
           <div class="message-time">{{ formatTime(message.timestamp) }}</div>
         </div>
@@ -97,7 +111,7 @@
 <script setup>
 import { ref, nextTick, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { User, ChatDotRound, Delete, Setting, Promotion } from '@element-plus/icons-vue'
+import { User, ChatDotRound, Delete, Setting, Promotion, View, ArrowRight } from '@element-plus/icons-vue'
 import { marked } from 'marked'
 
 const messages = ref([])
@@ -141,6 +155,8 @@ const sendMessage = async () => {
     const aiMessageIndex = messages.value.push({
       role: 'assistant',
       content: '',
+      thinking: '',
+      showThinking: false,  // 默认折叠思考过程
       timestamp: new Date()
     }) - 1
 
@@ -153,6 +169,11 @@ const sendMessage = async () => {
   }
 }
 
+// 切换思考过程显示
+const toggleThinking = (index) => {
+  messages.value[index].showThinking = !messages.value[index].showThinking
+}
+
 // 流式聊天
 const streamChat = async (message, messageIndex) => {
   const url = `http://192.168.126.134:18888/api/llm/chat/stream?message=${encodeURIComponent(message)}`
@@ -160,6 +181,7 @@ const streamChat = async (message, messageIndex) => {
   return new Promise((resolve, reject) => {
     eventSource = new EventSource(url)
 
+    let fullThinking = ''
     let fullContent = ''
 
     eventSource.onmessage = (event) => {
@@ -182,13 +204,20 @@ const streamChat = async (message, messageIndex) => {
         // 解析 JSON（后端 ServerSentEvent 已经去掉了 data: 前缀）
         const jsonData = JSON.parse(data)
 
-        // 提取 content - 智谱AI返回的可能是 reasoning_content 或 content
+        // 分别处理 reasoning_content 和 content
         if (jsonData.choices && jsonData.choices[0] && jsonData.choices[0].delta) {
           const delta = jsonData.choices[0].delta
-          // 优先使用 reasoning_content（推理内容），如果没有则使用 content
-          const content = delta.reasoning_content || delta.content
-          if (content) {
-            fullContent += content
+
+          // 推理内容
+          if (delta.reasoning_content) {
+            fullThinking += delta.reasoning_content
+            messages.value[messageIndex].thinking = fullThinking
+            nextTick(() => scrollToBottom())
+          }
+
+          // 实际回复内容
+          if (delta.content) {
+            fullContent += delta.content
             messages.value[messageIndex].content = fullContent
             nextTick(() => scrollToBottom())
           }
@@ -204,7 +233,7 @@ const streamChat = async (message, messageIndex) => {
       isAiThinking.value = false
 
       // 如果有内容就认为成功，否则报错
-      if (fullContent) {
+      if (fullContent || fullThinking) {
         resolve()
       } else {
         reject(error)
@@ -439,6 +468,53 @@ onMounted(() => {
   color: #999;
   margin-top: 4px;
   padding: 0 4px;
+}
+
+/* 思考过程样式 */
+.thinking-section {
+  margin-bottom: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8f9fa;
+}
+
+.thinking-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  user-select: none;
+  background: #f0f2f5;
+  color: #666;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.thinking-header:hover {
+  background: #e8eaed;
+}
+
+.thinking-header .el-icon.rotated {
+  transform: rotate(90deg);
+  transition: transform 0.2s;
+}
+
+.thinking-header .el-icon:not(.rotated) {
+  transition: transform 0.2s;
+}
+
+.thinking-content {
+  padding: 12px;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  border-top: 1px solid #e0e0e0;
+  background: white;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .thinking-indicator {
