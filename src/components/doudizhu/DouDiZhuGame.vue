@@ -280,10 +280,52 @@ const createGame = async () => {
       userId: 1, // 从token获取
       playerName: setupForm.value.playerName
     })
-    gameId.value = response.data
-    roomNumber.value = response.data.roomNumber
-    connectWebSocket()
+    console.log('创建游戏完整响应:', JSON.stringify(response))
+    console.log('响应类型:', typeof response)
+    console.log('response.data:', response.data)
+    console.log('response.data?.gameId:', response.data?.gameId)
+
+    // 尝试从响应中提取 gameId 和 roomNumber
+    let gid = null
+    let rnum = ''
+
+    if (response && typeof response === 'object') {
+      if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+        // 响应格式: { data: { gameId: xxx, roomNumber: xxx } }
+        const dataGameId = response.data.gameId
+        if (typeof dataGameId === 'number') {
+          gid = dataGameId
+          rnum = response.data.roomNumber || ''
+          console.log('从 response.data.gameId 提取')
+        } else {
+          console.warn('response.data.gameId 不是数字:', dataGameId, '类型:', typeof dataGameId)
+        }
+      } else if (typeof response.gameId === 'number') {
+        // 响应格式: { gameId: xxx, roomNumber: xxx }
+        gid = response.gameId
+        rnum = response.roomNumber || ''
+        console.log('从 response.gameId 提取')
+      } else if (typeof response.data === 'number') {
+        // 响应格式: { data: 123 } (德州扑克格式)
+        gid = response.data
+        console.log('从 response.data (number) 提取')
+      }
+    }
+
+    console.log('最终提取的 gameId:', gid, '类型:', typeof gid)
+    console.log('最终提取的 roomNumber:', rnum)
+
+    // 确保 gid 是数字
+    if (typeof gid === 'number' && gid > 0) {
+      gameId.value = gid
+      roomNumber.value = rnum
+      console.log('设置 gameId.value =', gameId.value, '类型:', typeof gameId.value)
+      connectWebSocket()
+    } else {
+      throw new Error('无法从响应中获取游戏ID，gid = ' + JSON.stringify(gid))
+    }
   } catch (error) {
+    console.error('创建游戏失败:', error)
     ElMessage.error(error.message || '创建游戏失败')
   } finally {
     loading.value = false
@@ -354,7 +396,17 @@ const handlePass = () => {
 
 // 连接WebSocket
 const connectWebSocket = () => {
+  console.log('准备连接 WebSocket，gameId.value:', gameId.value, '类型:', typeof gameId.value)
+
+  if (typeof gameId.value !== 'number') {
+    console.error('gameId.value 不是数字:', gameId.value)
+    ElMessage.error('游戏ID格式错误，请重新创建游戏')
+    return
+  }
+
   const wsUrl = `ws://localhost:5173/ws/doudizhu/${gameId.value}`
+  console.log('WebSocket URL:', wsUrl)
+
   ws.value = new WebSocket(wsUrl)
 
   ws.value.onopen = () => {
@@ -364,10 +416,12 @@ const connectWebSocket = () => {
   ws.value.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data)
+      console.log('收到 WebSocket 消息:', data)
       if (data.type === 'error') {
         ElMessage.error(data.message)
       } else {
         gameState.value = data
+        console.log('更新 gameState:', gameState.value)
         if (data.status === 3) {
           showGameOver.value = true
         }

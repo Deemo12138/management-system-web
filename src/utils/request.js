@@ -34,8 +34,8 @@ service.interceptors.response.use(
   response => {
     const res = response.data;
     
-    // 通用响应格式处理（支持 code 为字符串或数字，以及 success 字段）
-    if (res.code === 200 || res.code === '200' || res.success === true) {
+    // 通用响应格式处理（支持 code 为字符串或数字，以及 success/ executed 字段）
+    if (res.code === 200 || res.code === '200' || res.executed === true || res.isSuccess === true) {
       return res;
     } else {
       // 显示错误信息
