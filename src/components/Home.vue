@@ -24,6 +24,14 @@
             </div>
             <div class="link-arrow">→</div>
           </div>
+          <div class="quick-link-card doudizhu-game" @click="goToDouDiZhu">
+            <div class="link-icon">🃏</div>
+            <div class="link-content">
+              <div class="link-title">斗地主</div>
+              <div class="link-desc">经典三人斗地主</div>
+            </div>
+            <div class="link-arrow">→</div>
+          </div>
         </div>
       </div>
 
@@ -140,6 +148,11 @@ const handleLogout = () => {
 // 进入德州扑克游戏
 const goToPoker = () => {
   router.push('/poker')
+}
+
+// 进入斗地主游戏
+const goToDouDiZhu = () => {
+  router.push('/doudizhu')
 }
 </script>
 
