@@ -4,6 +4,7 @@ import Register from '@/components/Register.vue'
 import Home from '@/components/Home.vue'
 import TexasPoker from '@/components/poker/TexasPoker.vue'
 import DouDiZhuGame from '@/components/doudizhu/DouDiZhuGame.vue'
+import AiChat from '@/components/ai-chat/AiChat.vue'
 
 const routes = [
   {
@@ -34,6 +35,11 @@ const routes = [
     path: '/doudizhu',
     name: 'DouDiZhu',
     component: DouDiZhuGame
+  },
+  {
+    path: '/ai-chat',
+    name: 'AiChat',
+    component: AiChat
   }
 ]
 

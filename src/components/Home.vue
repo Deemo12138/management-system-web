@@ -16,6 +16,14 @@
       <div class="content-section">
         <h2 class="section-title">快捷入口</h2>
         <div class="quick-links">
+          <div class="quick-link-card ai-chat" @click="goToAiChat">
+            <div class="link-icon">🤖</div>
+            <div class="link-content">
+              <div class="link-title">AI 助手</div>
+              <div class="link-desc">智能对话助手</div>
+            </div>
+            <div class="link-arrow">→</div>
+          </div>
           <div class="quick-link-card poker-game" @click="goToPoker">
             <div class="link-icon">🃏</div>
             <div class="link-content">
@@ -145,6 +153,11 @@ const handleLogout = () => {
   router.push('/login')
 }
 
+// 进入AI聊天
+const goToAiChat = () => {
+  router.push('/ai-chat')
+}
+
 // 进入德州扑克游戏
 const goToPoker = () => {
   router.push('/poker')
@@ -253,6 +266,10 @@ const goToDouDiZhu = () => {
 
 .quick-link-card.poker-game {
   background: linear-gradient(135deg, #1a5f3c 0%, #2d7a4a 100%);
+}
+
+.quick-link-card.ai-chat {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
 .quick-link-card:hover {
