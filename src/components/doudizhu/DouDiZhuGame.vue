@@ -20,10 +20,10 @@
         <el-tag>房间号: {{ roomNumber }}</el-tag>
         <el-tag type="info">状态: {{ statusText }}</el-tag>
         <el-tag v-if="gameState?.landlordPosition !== null" type="warning">
-          地主: {{ getPlayerName(gameState.landlordPosition) }}
+          地主: {{ getPlayerName(gameState.landlordPosition ?? -1) }}
         </el-tag>
         <el-tag v-if="gameState?.baseScore > 0" type="success">
-          倍数: {{ gameState.finalMultiplier || 1 }}
+          倍数: {{ gameState?.finalMultiplier || 1 }}
         </el-tag>
         <el-button v-if="gameState?.status === 3" type="primary" size="small" @click="createGame">
           新游戏
@@ -33,7 +33,7 @@
       <!-- 牌桌区域 -->
       <div class="doudizhu-table">
         <!-- 地主底牌 -->
-        <div v-if="gameState?.landlordCards && gameState.landlordCards.length > 0" class="landlord-cards">
+        <div v-if="gameState?.landlordCards?.length > 0" class="landlord-cards">
           <span class="label">地主底牌:</span>
           <div class="cards">
             <doudizhu-card
@@ -247,8 +247,9 @@ const cannotPass = computed(() => {
 
 // 是否AI回合
 const isAiTurn = computed(() => {
-  return gameState.value?.currentPlayerPosition !== null &&
-         sortedPlayers.value.find(p => p.position === gameState.value.currentPlayerPosition)?.isAi
+  const currentPlayerPos = gameState.value?.currentPlayerPosition
+  return currentPlayerPos !== null &&
+         sortedPlayers.value.find(p => p.position === currentPlayerPos)?.isAi
 })
 
 // 获取玩家名称
