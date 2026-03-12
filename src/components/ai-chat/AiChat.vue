@@ -174,19 +174,23 @@ const streamChat = async (message, messageIndex) => {
           return
         }
 
-        // 解析 OpenAI SSE 格式
-        if (data && data.startsWith('data: ')) {
-          const jsonStr = data.substring(6).trim() // 移除 "data: " 前缀
-          const jsonData = JSON.parse(jsonStr)
+        // 跳过空数据
+        if (!data || data.trim() === '') {
+          return
+        }
 
-          // 提取 content
-          if (jsonData.choices && jsonData.choices[0] && jsonData.choices[0].delta) {
-            const delta = jsonData.choices[0].delta
-            if (delta.content) {
-              fullContent += delta.content
-              messages.value[messageIndex].content = fullContent
-              nextTick(() => scrollToBottom())
-            }
+        // 解析 JSON（后端 ServerSentEvent 已经去掉了 data: 前缀）
+        const jsonData = JSON.parse(data)
+
+        // 提取 content - 智谱AI返回的可能是 reasoning_content 或 content
+        if (jsonData.choices && jsonData.choices[0] && jsonData.choices[0].delta) {
+          const delta = jsonData.choices[0].delta
+          // 优先使用 reasoning_content（推理内容），如果没有则使用 content
+          const content = delta.reasoning_content || delta.content
+          if (content) {
+            fullContent += content
+            messages.value[messageIndex].content = fullContent
+            nextTick(() => scrollToBottom())
           }
         }
       } catch (e) {
