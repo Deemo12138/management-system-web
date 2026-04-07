@@ -57,7 +57,7 @@
                 </div>
               </div>
               <div class="marker-item-actions" @click.stop>
-                <el-dropdown trigger="click" @command="(cmd) => handleMarkerCommand(cmd, marker)">
+                <el-dropdown v-if="marker.creatorId === currentUserId" trigger="click" @command="(cmd) => handleMarkerCommand(cmd, marker)">
                   <span class="three-dots">⋮</span>
                   <template #dropdown>
                     <el-dropdown-menu>
@@ -163,8 +163,8 @@
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button v-if="isEdit" type="danger" @click="handleDelete">删除</el-button>
-        <el-button type="primary" @click="handleSave">保存</el-button>
+        <el-button v-if="isEdit && formData.creatorId === currentUserId" type="danger" @click="handleDelete">删除</el-button>
+        <el-button v-if="formData.creatorId === currentUserId" type="primary" @click="handleSave">保存</el-button>
       </template>
     </el-dialog>
   </div>
@@ -178,6 +178,21 @@ import { Plus } from '@element-plus/icons-vue'
 import { listMarkers, addMarker, updateMarker, deleteMarker, uploadPicture } from '@/api/map-marker'
 
 const router = useRouter()
+
+// 当前登录用户ID
+const currentUserId = ref(null)
+
+// 解码JWT获取用户ID
+const getCurrentUserIdFromToken = (token) => {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    const payload = JSON.parse(atob(parts[1]))
+    return payload.userId || payload.userId || null
+  } catch (e) {
+    return null
+  }
+}
 
 // 地图相关
 let mapInstance = null
@@ -206,7 +221,8 @@ const formData = ref({
   category: 'default',
   longitude: 0,
   latitude: 0,
-  pictures: []
+  pictures: [],
+  creatorId: null
 })
 
 // 返回首页
@@ -427,7 +443,8 @@ const openAddDialog = (lng, lat) => {
     category: 'default',
     longitude: lng,
     latitude: lat,
-    pictures: []
+    pictures: [],
+    creatorId: currentUserId.value
   }
   dialogVisible.value = true
 }
@@ -442,7 +459,8 @@ const openEditDialog = (item) => {
     category: item.category || 'default',
     longitude: item.longitude,
     latitude: item.latitude,
-    pictures: item.pictures ? item.pictures : []
+    pictures: item.pictures ? item.pictures : [],
+    creatorId: item.creatorId
   }
   dialogVisible.value = true
 }
@@ -538,6 +556,11 @@ onMounted(() => {
   document.body.classList.add('map-fullscreen')
   console.log('[MapMarker] onMounted 触发')
   console.log('[MapMarker] AMAP_KEY:', import.meta.env.VITE_AMAP_KEY)
+  // 获取当前用户ID
+  const token = localStorage.getItem('token')
+  if (token) {
+    currentUserId.value = getCurrentUserIdFromToken(token)
+  }
   initMap()
 })
 
