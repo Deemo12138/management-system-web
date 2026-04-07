@@ -40,6 +40,14 @@
             </div>
             <div class="link-arrow">→</div>
           </div>
+          <div class="quick-link-card map-marker" @click="goToMap">
+            <div class="link-icon">📍</div>
+            <div class="link-content">
+              <div class="link-title">地图标注</div>
+              <div class="link-desc">在地图上标记和管理地点</div>
+            </div>
+            <div class="link-arrow">→</div>
+          </div>
         </div>
       </div>
 
@@ -167,6 +175,11 @@ const goToPoker = () => {
 const goToDouDiZhu = () => {
   router.push('/doudizhu')
 }
+
+// 进入地图标注
+const goToMap = () => {
+  router.push('/map')
+}
 </script>
 
 <style scoped>
@@ -270,6 +283,10 @@ const goToDouDiZhu = () => {
 
 .quick-link-card.ai-chat {
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.quick-link-card.map-marker {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
 .quick-link-card:hover {

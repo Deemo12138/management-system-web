@@ -26,6 +26,10 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: env.VITE_API_BASE_URL || 'http://localhost:1884',
           changeOrigin: true
+        },
+        '/uploads': {
+          target: env.VITE_API_BASE_URL || 'http://localhost:1884',
+          changeOrigin: true
         }
       },
       fs: {
@@ -33,7 +37,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     optimizeDeps: {
-      include: ['vue', 'vue-router', 'element-plus', 'axios', 'crypto-js'],
+      include: ['vue', 'vue-router', 'element-plus', 'axios', 'crypto-js', '@amap/amap-jsapi-loader'],
       esbuildOptions: {
         target: 'es2020'
       }

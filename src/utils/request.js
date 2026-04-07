@@ -127,4 +127,21 @@ service.interceptors.response.use(
   }
 );
 
+/**
+ * 上传文件请求（不设置 JSON Content-Type）
+ * @param {string} url - 上传地址
+ * @param {FormData} formData - 表单数据
+ * @returns {Promise}
+ */
+export const uploadFile = (url, formData) => {
+  return service({
+    url,
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+};
+
 export default service;
