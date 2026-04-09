@@ -296,15 +296,12 @@ const removeImage = (index) => {
 // 动态加载高德地图 JS API
 const loadAMapScript = () => {
   return new Promise((resolve, reject) => {
-    console.log('[MapMarker] loadAMapScript 开始')
     if (window.AMap) {
-      console.log('[MapMarker] AMap 已存在')
       resolve(window.AMap)
       return
     }
     const key = import.meta.env.VITE_AMAP_KEY
     const securityKey = import.meta.env.VITE_AMAP_SECURITY_KEY
-    console.log('[MapMarker] key:', key, 'securityKey:', securityKey)
 
     // 在加载脚本前设置安全密钥
     window._AMapSecurityConfig = {
@@ -314,7 +311,6 @@ const loadAMapScript = () => {
     const script = document.createElement('script')
     script.src = `https://webapi.amap.com/maps?v=2.0&key=${key}&plugin=AMap.Scale,AMap.ToolBar`
     script.onload = () => {
-      console.log('[MapMarker] 脚本加载完成, window.AMap:', !!window.AMap)
       if (window.AMap) {
         resolve(window.AMap)
       } else {
@@ -322,7 +318,7 @@ const loadAMapScript = () => {
       }
     }
     script.onerror = (e) => {
-      console.error('[MapMarker] 脚本加载 onerror', e)
+      console.error('AMap 脚本加载失败', e)
       reject(new Error('AMap 脚本加载失败'))
     }
     document.head.appendChild(script)
@@ -346,26 +342,22 @@ const getCurrentPosition = () => {
 
 // 初始化地图
 const initMap = async () => {
-  console.log('[MapMarker] initMap 开始')
   try {
     const AMap = await loadAMapScript()
-    console.log('[MapMarker] AMap 加载成功, 创建地图实例...')
     AMapRef.value = AMap
 
     // 默认北京中心
     let center = [116.397428, 39.90923]
     try {
       center = await getCurrentPosition()
-      console.log('[MapMarker] 定位成功:', center)
     } catch (e) {
-      console.warn('[MapMarker] 定位失败，使用默认中心:', e.message)
+      console.warn('定位失败，使用默认中心:', e.message)
     }
 
     mapInstance = new AMap.Map('map-container', {
       zoom: 14,
       center
     })
-    console.log('[MapMarker] 地图实例创建完成:', !!mapInstance)
 
     mapInstance.addControl(new AMap.Scale())
     mapInstance.addControl(new AMap.ToolBar({ position: 'RT' }))
@@ -605,20 +597,31 @@ const handleDislike = async (marker) => {
 
 // 回到当前位置
 const handleLocate = async () => {
+  if (!mapInstance) {
+    ElMessage.error('地图尚未加载完成')
+    return
+  }
   try {
     const pos = await getCurrentPosition()
     mapInstance.setCenter(pos)
     mapInstance.setZoom(14)
+    ElMessage.success('已定位到当前位置')
   } catch (e) {
-    console.warn('[MapMarker] 定位失败:', e.message)
+    if (e.code === 1) {
+      ElMessage.warning('请允许浏览器获取您的位置信息')
+    } else if (e.code === 2) {
+      ElMessage.error('无法获取位置信息，请检查设备定位功能')
+    } else if (e.code === 3) {
+      ElMessage.error('定位超时，请重试')
+    } else {
+      ElMessage.error('定位失败: ' + e.message)
+    }
   }
 }
 
 onMounted(() => {
   // 地图页面需要全屏，覆盖全局 CSS 限制
   document.body.classList.add('map-fullscreen')
-  console.log('[MapMarker] onMounted 触发')
-  console.log('[MapMarker] AMAP_KEY:', import.meta.env.VITE_AMAP_KEY)
   // 获取当前用户ID
   const token = localStorage.getItem('token')
   if (token) {
