@@ -309,7 +309,8 @@ const loadAMapScript = () => {
     }
 
     const script = document.createElement('script')
-    script.src = `https://webapi.amap.com/maps?v=2.0&key=${key}&plugin=AMap.Scale,AMap.ToolBar`
+    // 加载 Geolocation 定位插件
+    script.src = `https://webapi.amap.com/maps?v=2.0&key=${key}&plugin=AMap.Scale,AMap.ToolBar,AMap.Geolocation`
     script.onload = () => {
       if (window.AMap) {
         resolve(window.AMap)
@@ -325,18 +326,25 @@ const loadAMapScript = () => {
   })
 }
 
-// 获取用户当前位置
+// 获取用户当前位置（使用高德地图定位插件，无 HTTPS 限制）
 const getCurrentPosition = () => {
   return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('浏览器不支持定位'))
+    if (!AMapRef.value) {
+      reject(new Error('高德地图尚未加载'))
       return
     }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => resolve([pos.coords.longitude, pos.coords.latitude]),
-      (err) => reject(err),
-      { enableHighAccuracy: true, timeout: 5000 }
-    )
+    const geolocation = new AMapRef.value.Geolocation({
+      enableHighAccuracy: true,
+      timeout: 10000,
+      needAddress: false
+    })
+    geolocation.getCurrentPosition((status, result) => {
+      if (status === 'complete') {
+        resolve([result.position.lng, result.position.lat])
+      } else {
+        reject(new Error(result.message || '定位失败'))
+      }
+    })
   })
 }
 
