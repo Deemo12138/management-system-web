@@ -55,6 +55,22 @@
                     class="thumb-img"
                   />
                 </div>
+                <div class="marker-item-reactions">
+                  <span
+                    class="reaction-btn"
+                    :class="{ active: marker.myReaction === 1 }"
+                    @click.stop="handleLike(marker)"
+                  >
+                    👍 <span>{{ marker.likeCount || 0 }}</span>
+                  </span>
+                  <span
+                    class="reaction-btn"
+                    :class="{ active: marker.myReaction === -1 }"
+                    @click.stop="handleDislike(marker)"
+                  >
+                    👎 <span>{{ marker.dislikeCount || 0 }}</span>
+                  </span>
+                </div>
               </div>
               <div class="marker-item-actions" @click.stop>
                 <el-dropdown v-if="marker.creatorId === currentUserId" trigger="click" @command="(cmd) => handleMarkerCommand(cmd, marker)">
@@ -176,6 +192,7 @@ import { useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { listMarkers, addMarker, updateMarker, deleteMarker, uploadPicture } from '@/api/map-marker'
+import { reactMarker, cancelReaction } from '@/api/map-marker-reaction'
 
 const router = useRouter()
 
@@ -540,6 +557,52 @@ const handleMarkerCommand = (command, marker) => {
   }
 }
 
+// 点赞
+const handleLike = async (marker) => {
+  try {
+    // 如果已经点赞，则取消
+    if (marker.myReaction === 1) {
+      await cancelReaction(marker.id)
+      if (marker.likeCount) marker.likeCount--
+      marker.myReaction = null
+    } else {
+      // 否则点赞
+      await reactMarker(marker.id, 1)
+      // 更新本地数据
+      if (marker.myReaction === -1 && marker.dislikeCount) {
+        marker.dislikeCount--
+      }
+      marker.likeCount = (marker.likeCount || 0) + 1
+      marker.myReaction = 1
+    }
+  } catch (err) {
+    console.error('点赞失败:', err)
+  }
+}
+
+// 点踩
+const handleDislike = async (marker) => {
+  try {
+    // 如果已经点踩，则取消
+    if (marker.myReaction === -1) {
+      await cancelReaction(marker.id)
+      if (marker.dislikeCount) marker.dislikeCount--
+      marker.myReaction = null
+    } else {
+      // 否则点踩
+      await reactMarker(marker.id, -1)
+      // 更新本地数据
+      if (marker.myReaction === 1 && marker.likeCount) {
+        marker.likeCount--
+      }
+      marker.dislikeCount = (marker.dislikeCount || 0) + 1
+      marker.myReaction = -1
+    }
+  } catch (err) {
+    console.error('点踩失败:', err)
+  }
+}
+
 // 回到当前位置
 const handleLocate = async () => {
   try {
@@ -762,6 +825,34 @@ onBeforeUnmount(() => {
   object-fit: cover;
   border-radius: 4px;
   border: 1px solid #e4e7ed;
+}
+
+.marker-item-reactions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.reaction-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #909399;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.reaction-btn:hover {
+  background-color: #f5f7fa;
+}
+
+.reaction-btn.active {
+  color: #409eff;
+  background-color: #ecf5ff;
 }
 
 .marker-item-actions {
