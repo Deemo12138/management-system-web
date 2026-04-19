@@ -43,8 +43,13 @@
               <div class="marker-item-main">
                 <div class="marker-item-title">{{ marker.title }}</div>
                 <div class="marker-item-desc" v-if="marker.description">{{ marker.description }}</div>
-                <div class="marker-item-coord">
-                  {{ Number(marker.longitude).toFixed(4) }}, {{ Number(marker.latitude).toFixed(4) }}
+                <div class="marker-item-meta">
+                  <span v-if="marker.creatorName" class="meta-item">
+                    <span class="meta-icon">👤</span>{{ marker.creatorName }}
+                  </span>
+                  <span v-if="marker.createTime" class="meta-item">
+                    <span class="meta-icon">🕒</span>{{ formatTime(marker.createTime) }}
+                  </span>
                 </div>
                 <div v-if="marker.pictures && marker.pictures.length > 0" class="marker-item-thumbs">
                   <img
@@ -209,6 +214,30 @@ const getCurrentUserIdFromToken = (token) => {
   } catch (e) {
     return null
   }
+}
+
+// 格式化时间
+const formatTime = (timeStr) => {
+  if (!timeStr) return ''
+  const date = new Date(timeStr)
+  const now = new Date()
+  const diff = now - date
+  const oneDay = 24 * 60 * 60 * 1000
+
+  // 今天
+  if (diff < oneDay && date.getDate() === now.getDate()) {
+    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  }
+  // 昨天
+  if (diff < 2 * oneDay && new Date(now - oneDay).getDate() === date.getDate()) {
+    return '昨天 ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  }
+  // 今年
+  if (date.getFullYear() === now.getFullYear()) {
+    return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
+  }
+  // 其他
+  return date.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })
 }
 
 // 地图相关
@@ -818,9 +847,23 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-.marker-item-coord {
+.marker-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.meta-item {
   font-size: 12px;
-  color: #c0c4cc;
+  color: #909399;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.meta-icon {
+  font-size: 12px;
 }
 
 .marker-item-thumbs {

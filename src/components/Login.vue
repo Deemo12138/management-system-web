@@ -150,10 +150,11 @@ const handleLogin = async () => {
   border-radius: 12px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   padding: 40px;
-  width: 100%;
-  max-width: 420px;
+  width: 80%;
+  max-width: 800px;
   backdrop-filter: blur(10px);
 }
+
 
 .login-header {
   text-align: center;
@@ -313,13 +314,59 @@ const handleLogin = async () => {
 }
 
 /* 响应式设计 */
-@media (max-width: 640px) {
-    .login-card {
-      padding: 32px 24px;
-    }
-    
-    .login-title {
-      font-size: 24px;
-    }
+/* 超大屏幕 */
+@media (min-width: 1200px) {
+  .login-card {
+    max-width: 900px !important;
+    padding: 50px;
   }
+
+  .login-title {
+    font-size: 32px !important;
+  }
+
+  .form-input {
+    padding: 14px 18px;
+    font-size: 15px;
+  }
+
+  .login-button {
+    padding: 16px 28px;
+    font-size: 17px;
+  }
+}
+
+/* PC 端样式 - 平板及以上 */
+@media (min-width: 768px) {
+  .login-card {
+    max-width: 700px !important;
+    padding: 45px;
+  }
+
+  .login-title {
+    font-size: 30px !important;
+  }
+
+  .form-input {
+    padding: 14px 18px;
+    font-size: 15px;
+  }
+
+  .login-button {
+    padding: 16px 28px;
+    font-size: 17px;
+  }
+}
+
+/* 移动端样式 */
+@media (max-width: 767px) {
+  .login-card {
+    max-width: 500px !important;
+    padding: 32px 24px;
+  }
+
+  .login-title {
+    font-size: 24px !important;
+  }
+}
 </style>

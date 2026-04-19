@@ -238,7 +238,7 @@ const goToMap = () => {
 .home-main {
   flex: 1;
   padding: 20px;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
@@ -395,5 +395,56 @@ const goToMap = () => {
   color: #303133;
   flex: 1;
   margin-left: 20px;
+}
+
+/* PC 端样式 - 平板及以上 */
+@media (min-width: 768px) {
+  .home-main {
+    max-width: 1400px !important;
+    padding: 30px 40px;
+  }
+
+  .home-header {
+    height: 70px !important;
+    padding: 0 40px !important;
+  }
+
+  .app-title {
+    font-size: 24px !important;
+  }
+
+  .content-section {
+    padding: 30px !important;
+    margin-bottom: 30px !important;
+  }
+
+  .section-title {
+    font-size: 20px !important;
+  }
+
+  .quick-links {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .quick-links {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .home-main {
+    max-width: 1600px !important;
+  }
 }
 </style>
