@@ -6,6 +6,7 @@ import TexasPoker from '@/components/poker/TexasPoker.vue'
 import DouDiZhuGame from '@/components/doudizhu/DouDiZhuGame.vue'
 import AiChat from '@/components/ai-chat/AiChat.vue'
 import MapMarker from '@/components/map/MapMarker.vue'
+import PullupBar from '@/components/pullupbar/PullupBar.vue'
 
 const routes = [
   {
@@ -46,6 +47,11 @@ const routes = [
     path: '/map',
     name: 'MapMarker',
     component: MapMarker
+  },
+  {
+    path: '/pullup-bar',
+    name: 'PullupBar',
+    component: PullupBar
   }
 ]
 

@@ -48,6 +48,14 @@
             </div>
             <div class="link-arrow">→</div>
           </div>
+          <div class="quick-link-card pullup-bar" @click="goToPullupBar">
+            <div class="link-icon">🏋️</div>
+            <div class="link-content">
+              <div class="link-title">单杠在哪儿</div>
+              <div class="link-desc">发现和分享户外单杠位置</div>
+            </div>
+            <div class="link-arrow">→</div>
+          </div>
         </div>
       </div>
 
@@ -180,6 +188,11 @@ const goToDouDiZhu = () => {
 const goToMap = () => {
   router.push('/map')
 }
+
+// 进入单杠在哪儿
+const goToPullupBar = () => {
+  router.push('/pullup-bar')
+}
 </script>
 
 <style scoped>
@@ -287,6 +300,10 @@ const goToMap = () => {
 
 .quick-link-card.map-marker {
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.quick-link-card.pullup-bar {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
 }
 
 .quick-link-card:hover {
